@@ -1,0 +1,57 @@
+<h3>Card Settings</h3>
+
+<input type="submit" name="ignore.card.config" inner="foo">
+
+<h3>Board Settings</h3>
+
+<fieldset>
+  <legend>Lane Captions:</legend>
+  <several>
+    <p>
+      <label>
+        Lane <nr></nr>:<br>
+        <input type="text" name="lanes">
+      </label>
+    </p>
+  </several>
+</fieldset>
+
+<p>
+  <label>
+    Delete Message:<br>
+    <input type="text" name="del">
+  </label>
+</p>
+
+<h3>CSS Layout</h3>
+
+<p>
+  <label>
+    URL to CSS File:<br>
+    <input type="hidden" name="css.0" value="ccm.load">
+    <input type="url" name="css.1" size="70">
+  </label>
+</p>
+
+<h3>HTML Templates</h3>
+
+<p>
+  <label>
+    Main Structure:<br>
+    <input type="json_builder" name="html.main">
+  </label>
+</p>
+
+<p>
+  <label>
+    Lane Structure:<br>
+    <input type="json_builder" name="html.lane">
+  </label>
+</p>
+
+<p>
+  <label>
+    Add Area:<br>
+    <input type="json_builder" name="html.add">
+  </label>
+</p>
