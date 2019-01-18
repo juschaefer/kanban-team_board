@@ -104,7 +104,6 @@
       };
 
       this.start = async () => {
-
         // get kanban board data
         data = await $.dataset( this.data );
 
@@ -121,39 +120,40 @@
         let my_uid;
         let my_team;
 
-        console.log(data);
-        data.map(group => {
-          group.teams.map((team, index) => {
-            Object.keys(team.members).map(uid => {
-              let _uid = uid.toLowerCase().trim();
-              if (my_uid === _uid) {
-                my_team = team;
-                team_name.innerText = team.name || `Gruppe ${group.key.slice(-1)} Team ${index + 1}` || team.key;
-              }
-            });
-          });
-        });
+        // console.log("data: ", data);
+        // data.map(group => {
+        //   group.teams.map((team, index) => {
+        //     Object.keys(team.members).map(uid => {
+        //       let _uid = uid.toLowerCase().trim();
+        //       if (my_uid === _uid) {
+        //         my_team = team;
+        //         team_name.innerText = team.name || `Gruppe ${group.key.slice(-1)} Team ${index + 1}` || team.key;
+        //       }
+        //     });
+        //   });
+        // });
 
+        //console.log("--- N O W ---");
         // console.log("#", self.ccm.helper.dataset());
         // console.log("my_uid", my_uid);
         // console.log("my_team", my_team);
-        // self.ccm.helper.dataset( self.teamstore, ( groups ) => {
-        //   console.log("Group");
-        //   groups.map(group => {
-        //     group.teams.map((team, index) => {
-        //       Object.keys(team.members).map(uid => {
-        //         let _uid = uid.toLowerCase().trim();
-        //         if (my_uid === _uid) {
-        //           my_team = team;
-        //           team_name.innerText = team.name || `Gruppe ${group.key.slice(-1)} Team ${index + 1}` || team.key;
-        //         }
-        //       });
-        //     });
-        //   });
-        //   console.log("Groups: ", groups);
-        //   console.log("my_team: ", my_team);
-        //   console.log("my_uid: ", my_uid);
-        // });
+         self.ccm.helper.dataset( self.teamstore, ( groups ) => {
+           console.log("Group");
+          groups.map(group => {
+             group.teams.map((team, index) => {
+               Object.keys(team.members).map(uid => {
+                 let _uid = uid.toLowerCase().trim();
+                 if (my_uid === _uid) {
+                   my_team = team;
+                   team_name.innerText = team.name || `Gruppe ${group.key.slice(-1)} Team ${index + 1}` || team.key;
+                 }
+               });
+             });
+           });
+        //    console.log("Groups: ", groups);
+        //    console.log("my_team: ", my_team);
+        //    console.log("my_uid: ", my_uid);
+         });
 
 
 
