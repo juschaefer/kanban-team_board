@@ -120,6 +120,55 @@ ccm.files[ 'configs.js' ] = {
       "store": [ "ccm.store", "../kanban_team_board/resources/datasets.js" ],
       "key": "experimental"
     }
+  },
+
+  "vm": {
+    "key": "vm",
+    "css.1": "../kanban_team_board/resources/default.css",
+    // "data": {
+    //   "store": [ "ccm.store", "../kanban_team_board/resources/datasets.js" ],
+    //   "key": "test"
+    // },
+    "data": {
+      "store": [ "ccm.store", { "name": "kanban_team_borad", "url": "http://192.168.99.101:8080" } ],
+      "key": "sose_19"
+    },
+    //"logger": [ "ccm.instance", "../../akless-components/log/ccm.log.js", [ "ccm.get", "../../akless-components/log/resources/configs.js", "greedy" ] ],
+    "lanes": [ "ToDo", "Doing", "Done" ],
+    // "lanes": [ "ToDo" ],
+    "onchange": function ( event ) { console.log( this.index, 'onchange', this.getValue(), event ) },
+    "ignore": {
+      "card": {
+        "component": "../kanban_team_card/ccm.kanban_team_card.js",
+        "config": {
+          "css.1": "../kanban_team_card/resources/default.css",
+          "data": {
+            "store": [ "ccm.store", { "name": "kanban_team_cards", "url": "http://192.168.99.101:8080" } ],
+            "key": "sose_19"
+          },
+          "icon": {
+            "owner": "../kanban_team_card/resources/owner.svg",
+            "deadline": "../kanban_team_card/resources/deadline.svg"
+          }
+        }
+      }
+    }
+    // "ignore": {
+    //   "card": {
+    //     "component": "../kanban_team_card/ccm.kanban_team_card.js",
+    //     "config": {
+    //       "css.1": "../kanban_team_card/resources/default.css",
+    //       "data": {
+    //         "store": [ "ccm.store" ]
+    //       },
+    //       "members": [ "Olga", "Detlef" ],
+    //       "icon": {
+    //         "owner": "../kanban_team_card/resources/owner.svg",
+    //         "deadline": "../kanban_team_card/resources/deadline.svg"
+    //       }
+    //     }
+    //   }
+    // }
   }
 
 };

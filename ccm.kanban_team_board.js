@@ -58,6 +58,8 @@
 
     config: {
 
+      "kanban": [ 'ccm.component', 'http://kaul.inf.h-brs.de/data/ccm/kanban_board/versions/ccm.kanban_board-1.0.0.js' ],
+
       "html": {
         "main": { "id": "lanes" },
         "lane": {
@@ -106,6 +108,9 @@
       this.start = async () => {
         // get kanban board data
         data = await $.dataset( this.data );
+        // console.log("kanban_team_board: DATA", data);
+        // console.log("kanban_team_board: LANES", data.lanes);
+        //console.log("kanban_team_board: CARD", data.lanes[0].cards);
 
         // set initial lanes
         if ( !data.lanes ) data.lanes = []; for ( let i = 0; i < this.lanes.length; i++ ) if ( !data.lanes[ i ] ) data.lanes[ i ] = { cards: [] };
@@ -119,6 +124,25 @@
         // let my_uid = self.user.data().id.toLowerCase().trim();
         let my_uid;
         let my_team;
+        let datum, index;
+
+        // let teams = data.map(
+        //     (datum, index, data) => {
+        //   console.log("(", datum + ", " + index + ", " + data + ")");
+        //   return datum;
+        // });
+
+        // console.log("DATA", data);
+
+        // let teams = Object.keys(data.lanes).map(datum => {
+        //
+        //   // console.log("(", datum + ")");
+        //   // console.log("(", datum + ", " + index + ", " + data + ")");
+        //   console.log("DATUM", datum);
+        //    return datum;
+        // });
+        //
+        // console.log("TEAMS", teams);
 
         // console.log("data: ", data);
         // data.map(group => {
@@ -133,27 +157,27 @@
         //   });
         // });
 
-        //console.log("--- N O W ---");
-        // console.log("#", self.ccm.helper.dataset());
-        // console.log("my_uid", my_uid);
-        // console.log("my_team", my_team);
-         self.ccm.helper.dataset( self.teamstore, ( groups ) => {
-           console.log("Group");
-          groups.map(group => {
-             group.teams.map((team, index) => {
-               Object.keys(team.members).map(uid => {
-                 let _uid = uid.toLowerCase().trim();
-                 if (my_uid === _uid) {
-                   my_team = team;
-                   team_name.innerText = team.name || `Gruppe ${group.key.slice(-1)} Team ${index + 1}` || team.key;
-                 }
-               });
-             });
-           });
-        //    console.log("Groups: ", groups);
-        //    console.log("my_team: ", my_team);
-        //    console.log("my_uid: ", my_uid);
-         });
+        // //console.log("--- N O W ---");
+        // // console.log("#", self.ccm.helper.dataset());
+        // // console.log("my_uid", my_uid);
+        // // console.log("my_team", my_team);
+        //  self.ccm.helper.dataset( self.teamstore, ( groups ) => {
+        //    console.log("Group");
+        //   groups.map(group => {
+        //      group.teams.map((team, index) => {
+        //        Object.keys(team.members).map(uid => {
+        //          let _uid = uid.toLowerCase().trim();
+        //          if (my_uid === _uid) {
+        //            my_team = team;
+        //            team_name.innerText = team.name || `Gruppe ${group.key.slice(-1)} Team ${index + 1}` || team.key;
+        //          }
+        //        });
+        //      });
+        //    });
+        // //    console.log("Groups: ", groups);
+        // //    console.log("my_team: ", my_team);
+        // //    console.log("my_uid: ", my_uid);
+        //  });
 
 
 
@@ -187,7 +211,7 @@
           // create and append HTML structure for each card
           for ( let j = 0; j < lane_data.cards.length; j++ ) {
             const card_dependency = lane_data.cards[ j ];
-// console.log("card_dependency", card_dependency);
+ // console.log("card_dependency", card_dependency);
             // adjust instance configuration of card dependency
             card_dependency[ 2 ] = $.clone( card_dependency[ 2 ] || {} );
             card_dependency[ 2 ].parent = this;
@@ -198,7 +222,7 @@
              */
             const card_inst = await $.solveDependency( card_dependency );
 
-            // console.log("card_inst", card_inst);
+             // console.log("card_inst", card_inst);
 
             // render card in drop zone
             await card_inst.start();
@@ -245,6 +269,54 @@
 
               // restart
               this.start();
+              // this.start({
+              //   "css.1": "../kanban_team_board/resources/default.css",
+              //   // "data": {
+              //   //   "store": [ "ccm.store", "../kanban_team_board/resources/datasets.js" ],
+              //   //   "key": "test"
+              //   // },
+              //   "data": {
+              //     "store": [ "ccm.store", { "name": "kanban_team_borad", "url": "http://192.168.99.101:8080" } ],
+              //     "key": "sose_19"
+              //   },
+              //   //"logger": [ "ccm.instance", "../../akless-components/log/ccm.log.js", [ "ccm.get", "../../akless-components/log/resources/configs.js", "greedy" ] ],
+              //   "lanes": [ "ToDo", "Doing", "Done" ],
+              //   // "lanes": [ "ToDo" ],
+              //   "onchange": function ( event ) { console.log( this.index, 'onchange', this.getValue(), event ) },
+              //   // "ignore": {
+              //   //   "card": {
+              //   //     "component": "../kanban_team_card/ccm.kanban_team_card.js",
+              //   //     "config": {
+              //   //       "css.1": "../kanban_team_card/resources/default.css",
+              //   //       "data": {
+              //   //         "store": [ "ccm.store" ]
+              //   //       },
+              //   //       "members": [ "Olga", "Detlef" ],
+              //   //       "icon": {
+              //   //         "owner": "../kanban_team_card/resources/owner.svg",
+              //   //         "deadline": "../kanban_team_card/resources/deadline.svg"
+              //   //       }
+              //   //     }
+              //   //   }
+              //   // },
+              //   "card": {
+              //     "component": "https://akless.github.io/ccm-components/kanban_card/versions/ccm.kanban_card-1.0.0.js",
+              //     "config": {
+              //       "font": [ "ccm.load", { "context": "head", "url": "https://akless.github.io/ccm-components/libs/weblysleekui/font.css" } ],
+              //       "css": [ "ccm.load", "https://akless.github.io/ccm-components/kanban_card/resources/weblysleek.css" ],
+              //       "data": {
+              //         "store": [ "ccm.store", { "store": "kanban_team_card", "url": "http://192.168.99.101" } ],
+              //         "group": Object.keys( my_team.members ).reduce( ( access,key ) => {
+              //           access[ key ] = true; return access; }, {}),
+              //         "permission_settings": { "get": "all", "set": "group" }
+              //       },
+              //       "onchange": function ( event ) { console.log( this.index, 'onchange', this.getValue(), event ) },
+              //       "members": Object.keys( my_team.members ),
+              //       "priorities": [ "Very High", "High", "Middle", "Low", "Very Low" ],
+              //       //logger: [ 'ccm.instance', 'https://akless.github.io/ccm-components/log/versions/ccm.log-1.0.0.min.js', [ 'ccm.get', 'https://kaul.inf.h-brs.de/data/2018/se1/json/log_configs.js', 'se_ws18_kanban_card' ] ]
+              //     }
+              //   }
+              // });
 
             } );
 
