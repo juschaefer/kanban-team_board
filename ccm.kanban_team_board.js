@@ -110,7 +110,7 @@
 
             this.start = async () => {
 
-                console.log("Members (Board)", self.members);
+                // console.log("Members (Board)", self.members);
 
                 $.setContent(self.element, $.html(self.html.main));
 
