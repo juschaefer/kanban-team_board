@@ -2,8 +2,11 @@
  * @overview ccm component for kanban board
  * @author André Kless <andre.kless@web.de> 2016-2018
  * @license The MIT License (MIT)
- * @version latest (2.0.0)
+ * @version latest (2.0.1)
  * @changes
+ * version 2.0.1 (26.11.2018):
+ * - bug fix for deleting a card
+ * - uses ccm v18.6.4
  * version 2.0.0 (01.11.2018)
  * - uses ccm v18.2.0
  * - removed privatization of instance members
@@ -24,21 +27,16 @@
 
         name: 'kanban_team_board',
 
-        //ccm: 'https://ccmjs.github.io/ccm/ccm.js',
+        // ccm: 'https://ccmjs.github.io/ccm/ccm.js',
         ccm: 'https://ccmjs.github.io/ccm/versions/ccm-18.2.0.js',
 
         config: {
 
             kanban: ['ccm.component', 'http://kaul.inf.h-brs.de/data/ccm/kanban_board/versions/ccm.kanban_board-1.0.0.js'],
             user: ["ccm.instance", "https://ccmjs.github.io/akless-components/user/versions/ccm.user-8.3.1.js", ["ccm.get", "https://ccmjs.github.io/akless-components/user/resources/configs.js", "guest"]],
-            // teamstore: {
-            //     "store": ["ccm.store", {name: 'teambuild', url: 'http://192.168.99.101:8080'}],
-            //     "key": "sose_19"
-            // },
 
-            html: {
-                "main": {"id": "kanban_board"},
-                "lanes": {"id": "lanes"},
+            "html": {
+                "main": {"id": "lanes"},
                 "lane": {
                     "class": "lane",
                     "inner": [
@@ -46,27 +44,14 @@
                             "class": "title",
                             "inner": "%%"
                         },
-                        {
-                            "class": "cards",
-                            // "inner": "%%"
-                        }
+                        {"class": "cards"}
                     ]
-                },
-                "user":
-                    {
-                        "class": "user",
-                        // "inner": "%username%"
-                    },
-                "username": {
-                    "class": "username",
-                    "inner": "%username%"
                 },
                 "add": {
                     "id": "add",
                     "onclick": "%%"
                 }
             },
-
             // bootstrap: [
             //     "ccm.load", {
             //         "url": "https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css",
@@ -74,18 +59,21 @@
             //         "crossorigin": "anonymous"
             //     }
             // ],
-
             css: ["ccm.load", "https://ccmjs.github.io/akless-components/kanban_board/resources/default.css"],
             data: {},
-            lanes: ["ToDo", "Doing"],
-            // lanes: [],
+            lanes: ["ToDo", "Doing", "Done"],
             del: "Do you really want to delete this card?",
             members: [],
+            team_store: {},
+            board_store: ['ccm.store', {
+                "name": "kanban_team_borad",
+                "url": "http://192.168.99.101:8080",
+                "key": "sose_19"
+            }],
+            card_store: {},
 
             //  "ignore": { "card": { "component": "https://ccmjs.github.io/akless-components/kanban_card/ccm.kanban_card.js", "config": {} } },
-            "onchange": function (event) {
-                // console.log(this.index, 'onchange', this.getValue(), event)
-            },
+            //  "onchange": function ( event ) { console.log( this.index, 'onchange', this.getValue(), event ) },
             //  "logger": [ "ccm.instance", "https://ccmjs.github.io/akless-components/log/versions/ccm.log-4.0.1.js", [ "ccm.get", "https://ccmjs.github.io/akless-components/log/resources/configs.js", "greedy" ] ]
 
         },
@@ -93,182 +81,232 @@
         Instance: function () {
 
             let $, data;
+
+            /**
+             * own reference for inner functions
+             * @type {Instance}
+             */
             const self = this;
 
             this.ready = async () => {
 
                 // set shortcut to help functions
-                $ = self.ccm.helper;
+                $ = this.ccm.helper;
 
                 // listen to datastore changes => restart
-                if ($.isObject(self.data) && $.isDatastore(self.data.store)) self.data.store.onchange = self.start;
+                if ($.isObject(this.data) && $.isDatastore(this.data.store)) this.data.store.onchange = this.start;
 
                 // logging of 'ready' event
-                self.logger && self.logger.log('ready', $.privatize(self, true));
+                this.logger && this.logger.log('ready', $.privatize(this, true));
 
             };
 
             this.start = async () => {
+                console.log("===== S T A R T =====");
 
-                // console.log("Members (Board)", self.members);
+                // get kanban board data
+                // Get Team-ID
+                // const team_id = await getTeamID(self.user.data().user);
+                // console.log("team_id", team_id);
+                // this.data.store = self.board_store;
+                // this.data.key = this.data.key + "_" + team_id;
 
-                $.setContent(self.element, $.html(self.html.main));
+                // console.log("store", self.data.store);
+                // console.log("key", self.data.key);
+                //
+                // console.log("datastore", this.data);
 
-                    // self.members.forEach((member) => {
-                         createLanes();
-                    // });
+                data = await $.dataset(this.data);
+                // console.log("data", data);
 
-                async function createLanes(member) {
-                    await self.user.login();
+                // Set initial
+                // if (Object.hasOwnProperty(this.data.lanes)) {
+                //     console.log("!Lanes");
+                // }
 
-                    const card_store = await ccm.store({name: "kanban_team_cards", url: "http://192.168.99.101:8080"});
+                // if (Object.hasOwnProperty(this.data.lanes)) {
+                //     // Get team board
+                //     // data = (await self.board_store.get({"_id": self.board_store.key, "team._id": team_id}))[0].team[0];
+                //     // data = (await self.board_store.get({"_id": "sose_19"}))[0];
+                //
+                //     // Get team members of logged in user
+                //     let team = await getTeamMembers(self.user.data().user);
+                //
+                //     // console.log("team", team);
+                //
+                //     // Get all cards of team members and map only ids
+                //     let team_card_keys = (await this.card_store.get({"owner": {$in: Object.keys(team[0].members)}})).map((card, index) => {
+                //         return card.key;
+                //     });
+                //
+                //     // console.log("team_card_keys", team_card_keys);
+                //
+                //     let new_lanedata = [];
+                //
+                //     // Rearange data with only cards of teammembers in lanes
+                //     data.lanes.forEach((lane, index) => {
+                //
+                //         let result = [];
+                //         let card;
+                //
+                //         for (let i = 0; i < lane.cards.length; i++) {
+                //             card = lane.cards[i];
+                //
+                //             if (team_card_keys.indexOf(card[2].data.key) > 0) {
+                //                 result.push(card);
+                //                 // } else {
+                //                 //     console.log("Entfernt: " + card[2].data.key);
+                //             }
+                //
+                //         }
+                //
+                //         if (result.length > 0) {
+                //             new_lanedata.push({"cards": result});
+                //         }
+                //
+                //     });
+                //
+                //     // Set rearanged lane data
+                //     data.lanes = new_lanedata;
+                //     //
+                //     // console.log(data);
+                // }
 
-                    // get kanban board data
-                    data = await $.dataset(self.data);
-                    // data = await card_store.get({"owner": member});
+                // set initial lanes
+                if (!data.lanes) data.lanes = [];
+                for (let i = 0; i < this.lanes.length; i++) if (!data.lanes[i]) data.lanes[i] = {
+                    title: this.lanes[i],
+                    cards: []
+                };
 
-                    // set initial lanes
-                    if (!data.lanes) data.lanes = [];
-                    for (let i = 0; i < self.lanes.length; i++) if (!data.lanes[i]) data.lanes[i] = {cards: []};
+                // logging of 'start' event
+                this.logger && this.logger.log('start', $.clone(data));
 
-                    // logging of 'start' event
-                    self.logger && self.logger.log('start', $.clone(data));
+                // render main HTML structure
+                $.setContent(this.element, $.html(this.html.main));
 
-                    // render main HTML structure
-                    // $.setContent(self.element, $.html(self.html.main));
+                /**
+                 * contains lanes
+                 * @type {Element}
+                 */
+                const lanes_elem = this.element.querySelector('#lanes');
 
-                    // let current_user = $.html(self.html.user, {username: member});
-
-                    const  current_user = self.element.querySelector('#kanban_board').appendChild($.html(self.html.user));
-
-                    current_user.appendChild($.html(self.html.username, {username: member}));
-
-                    const lanes_elem = current_user.appendChild($.html(self.html.lanes));
+                // create and append HTML structure for each lane
+                for (let i = 0; i < this.lanes.length; i++) {
 
                     /**
-                     * contains lanes
+                     * data of lane
+                     * @type {Object}
+                     */
+                    const lane_data = data.lanes[i];
+
+                    /**
+                     * lane HTML structure
                      * @type {Element}
                      */
-                    // const lanes_elem = self.element.querySelector('#lanes');
+                    const lane_elem = $.html(this.html.lane, this.lanes[i]);
 
-                    // create and append HTML structure for each lane
-                    for (let i = 0; i < self.lanes.length; i++) {
+                    /**
+                     * contains cards and their drop zones
+                     * @type {Element}
+                     */
+                    const cards_elem = lane_elem.querySelector('.cards');
+
+                    // create and append HTML structure for each card
+                    for (let j = 0; j < lane_data.cards.length; j++) {
+                        const card_dependency = lane_data.cards[j];
+
+                        // adjust instance configuration of card dependency
+                        card_dependency[2] = $.clone(card_dependency[2] || {});
+                        card_dependency[2].parent = this;
 
                         /**
-                         * data of lane
+                         * card instance
                          * @type {Object}
                          */
-                        const lane_data = data.lanes[i];
+                        const card_inst = await $.solveDependency(card_dependency);
 
-                        /**
-                         * lane HTML structure
-                         * @type {Element}
-                         */
-                        const lane_elem = $.html(self.html.lane, self.lanes[i]);
+                        // render card in drop zone
+                        await card_inst.start();
 
-                        /**
-                         * contains cards and their drop zones
-                         * @type {Element}
-                         */
-                        const cards_elem = lane_elem.querySelector('.cards');
+                        // append drop zone in cards element
+                        cards_elem.appendChild(card_inst.root);
 
-                        // create and append HTML structure for each card
-                        for (let j = 0; j < lane_data.cards.length; j++) {
-                            const card_dependency = lane_data.cards[j];
+                        // add HTML class to the root element of the card instance
+                        card_inst.root.classList.add('card');
 
-                            // adjust instance configuration of card dependency
-                            card_dependency[2] = $.clone(card_dependency[2] || {});
-                            card_dependency[2].parent = self;
+                        // set drag'n'drop functionality for the root element
+                        makeDraggable(this, card_inst.root);
+                        makeDroppable(this, card_inst.root);
 
-                            /**
-                             * card instance
-                             * @type {Object}
-                             */
-                            const card_inst = await $.solveDependency(card_dependency);
+                        // set functionality for removing a card per double click
+                        card_inst.root.addEventListener('dblclick', async () => {
 
-                                // render card in drop zone
-                                await card_inst.start();
-
-                            // append drop zone in cards element
-                            cards_elem.appendChild(card_inst.root);
-
-                            // add HTML class to the root element of the card instance
-                            card_inst.root.classList.add('card');
-
-                            // set drag'n'drop functionality for the root element
-                            makeDraggable(self, card_inst.root);
-                            makeDroppable(self, card_inst.root);
-
-                            // set functionality for removing a card per double click
-                            card_inst.root.addEventListener('dblclick', async () => {
-
-                                // run confirm dialog
-                                if (!confirm(self.del)) return;
-
-                                /**
-                                 * deleted card data
-                                 * @type {Object}
-                                 */
-                                const card_data = data.lanes[i].cards[j];
-
-                                // remove instance dependency of card from kanban board data
-                                data.lanes[i].cards.splice(j, 1);
-
-                                // update kanban board data in datastore
-                                self.data.store && self.data.store.set(data);
-
-                                /**
-                                 * event data
-                                 * @type {{lane: number, card: number, data: Object}}
-                                 */
-                                const event_data = {lane: i, card: j, data: card_data};
-
-                                // logging of 'del' event
-                                self.logger && self.logger.log('del', $.clone(event_data));
-
-                                // perform individual 'change' callback
-                                self.onchange && self.onchange.call(self, $.clone(event_data));
-
-                                // restart
-                                self.start();
-
-                            });
-
-                        }
-
-                        // append button for creating a new card to first lane
-                        if (self.ignore && i === 0) lane_elem.appendChild($.html(self.html.add, async () => {
+                            // run confirm dialog
+                            if (!confirm(this.del)) return;
 
                             /**
-                             * instance configuration for new card
+                             * deleted card data
                              * @type {Object}
                              */
-                            const config = $.clone(self.ignore.card.config);
+                            const card_data = data.lanes[i].cards[j];
 
-                            // generate dataset key for new card
-                            if (config.data.store) config.data.key = $.generateKey();
+                            // remove instance dependency of card from kanban board data
+                            data.lanes[i].cards.splice(j, 1);
 
-                            // create and add instance dependency for new card to kanban board data
-                            data.lanes[i].cards.push(['ccm.instance', self.ignore.card.component, config]);
+                            // update kanban board data in datastore
+                            this.data.store && await this.data.store.set(data);
 
-                            // update kanban board data in datastore and restart afterwards
-                            self.data.store && await self.data.store.set(data);
+                            /**
+                             * event data
+                             * @type {{lane: number, card: number, data: Object}}
+                             */
+                            const event_data = {lane: i, card: j, data: card_data};
+
+                            // logging of 'del' event
+                            this.logger && this.logger.log('del', $.clone(event_data));
 
                             // perform individual 'change' callback
-                            self.onchange && self.onchange.call(self);
-
-                            // logging of 'add' event
-                            self.logger && self.logger.log('add');
+                            this.onchange && this.onchange.call(this, $.clone(event_data));
 
                             // restart
-                            self.start();
+                            this.start();
 
-                        }));
-
-                        // append prepared lane HTML structure to main HTML structure
-                        lanes_elem.appendChild(lane_elem);
+                        });
 
                     }
+
+                    // append button for creating a new card to first lane
+                    if (this.ignore && i === 0) lane_elem.appendChild($.html(this.html.add, async () => {
+
+                        /**
+                         * instance configuration for new card
+                         * @type {Object}
+                         */
+                        const config = $.clone(this.ignore.card.config);
+
+                        // generate dataset key for new card
+                        if ($.isObject(config.data) && config.data.store) config.data.key = $.generateKey();
+
+                        // create and add instance dependency for new card to kanban board data
+                        data.lanes[i].cards.push(['ccm.instance', this.ignore.card.component, config]);
+
+                        // update kanban board data in datastore and restart afterwards
+                        this.data.store && await this.data.store.set(data);
+
+                        // perform individual 'change' callback
+                        this.onchange && this.onchange.call(this);
+
+                        // logging of 'add' event
+                        this.logger && this.logger.log('add');
+
+                        // restart
+                        this.start();
+
+                    }));
+
+                    // append prepared lane HTML structure to main HTML structure
+                    lanes_elem.appendChild(lane_elem);
 
                 }
 
@@ -412,7 +450,42 @@
              * returns current result data
              * @returns {Object} current kanban board data
              */
-            self.getValue = () => data;
+            this.getValue = () => data;
+
+            async function getTeamID(user) {
+
+                // Get Teamstore data
+                const team_data = (await self.team_store.store.get({"_id": self.team_store.key}))[0];
+
+                // Reduce to team key of user
+                return team_data.teams.reduce( (result, team) => {
+                    // console.log("team", team);
+                    if (team.members.hasOwnProperty(user)) {
+                        result = team.key;
+                    }
+
+                    return result
+                });
+            }
+
+            /**
+             * Gets team of given user
+             * @param user
+             * @returns {Promise<Array|T[]>}
+             */
+            async function getTeamMembers(user) {
+
+                // Get team data
+                let teams = (await self.team_store.store.get({"_id": self.team_store.key}))[0].teams;
+
+                // filter team of user
+                return teams.filter((team, index, teams) => {
+                    if (team.members.hasOwnProperty(user)) {
+                        return team;
+                    }
+                });
+
+            }
 
         }
 
